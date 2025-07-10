@@ -21,7 +21,7 @@ alias pamcan pacman
 alias pacman "sudo pacman"
 alias ls 'eza --icons'
 alias clear "printf '\033[2J\033[3J\033[1;1H'"
-    
+alias "aftersetup" "mv ~/.config/hypr/hypridle.conf.new ~/.config/hypr/hypridle.conf && mv ~/.config/hypr/hyprlock.conf.new ~/.config/hypr/hyprlock.conf"
 
 # function fish_prompt
 #   set_color cyan; echo (pwd)
