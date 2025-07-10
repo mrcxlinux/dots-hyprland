@@ -63,11 +63,9 @@
     <h3></h3>
 </div>
 
-<div align="center">
-    <img src=".github/assets/illogical-impulse.svg" alt="illogical-impulse logo">
-</div>
 
-### illogical-impulse<sup>Quickshell</sup>
+
+<img src=".github/assets/illogical-impulse.svg" alt="illogical-impulse logo"><sup>  Quickshell</sup>
 
 _latest and only style that I actively use._
 
