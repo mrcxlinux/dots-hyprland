@@ -67,9 +67,10 @@
     <img src=".github/assets/illogical-impulse.svg" alt="illogical-impulse logo">
 </div>
 
-_latest and only style that I actively use. Other past styles are still there for your viewing pleasure and not actual use, but code is still available, see below._
-
 ### illogical-impulse<sup>Quickshell</sup>
+
+_latest and only style that I actively use._
+
 
 [Showcase video](https://www.youtube.com/watch?v=RPwovTInagE)
 
