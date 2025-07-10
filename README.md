@@ -1,6 +1,5 @@
-<div align="center"> <summary>
-    <h1 style="margin-bottom: 0;">【 end_4's Hyprland dotfiles 】</h1> </summary>
-    <h2 align="center" style="margin-top: 1%;">@mrcxlinux edition</h2>
+<div align="center"> 
+    <h1 style="margin-bottom: 0;">【 end_4's Hyprland dotfiles 】<sup>@mrcxlinux editon</sup></h1>
     <h3></h3>
 </div>
 
