@@ -1,13 +1,14 @@
-<div align="center">
-    <h1>【 end_4's Hyprland dotfiles 】</h1>
+<div align="center"> <summary>
+    <h1 style="margin-bottom: 0;">【 end_4's Hyprland dotfiles 】</h1> </summary>
+    <h2 align="center" style="margin-top: 1%;">@mrcxlinux edition</h2>
     <h3></h3>
 </div>
 
 <div align="center"> 
 
-![](https://img.shields.io/github/last-commit/end-4/dots-hyprland?&style=for-the-badge&color=FFB1C8&logoColor=D9E0EE&labelColor=292324)
-![](https://img.shields.io/github/stars/end-4/dots-hyprland?style=for-the-badge&logo=andela&color=FFB686&logoColor=D9E0EE&labelColor=292324)
-[![](https://img.shields.io/github/repo-size/end-4/dots-hyprland?color=CAC992&label=SIZE&logo=googledrive&style=for-the-badge&logoColor=D9E0EE&labelColor=292324)](https://github.com/end-4/hyprland)
+![](https://img.shields.io/github/last-commit/mrcxlinux/dots-hyprland?&style=for-the-badge&color=FFB1C8&logoColor=D9E0EE&labelColor=292324)
+![](https://img.shields.io/github/stars/mrcxlinux/dots-hyprland?style=for-the-badge&logo=andela&color=FFB686&logoColor=D9E0EE&labelColor=292324)
+[![](https://img.shields.io/github/repo-size/mrcxlinux/dots-hyprland?color=CAC992&label=SIZE&logo=googledrive&style=for-the-badge&logoColor=D9E0EE&labelColor=292324)](https://github.com/end-4/hyprland)
 ![](https://img.shields.io/badge/issues-skill-green?style=for-the-badge&color=CCE8E9&logoColor=D9E0EE&labelColor=292324) 
 </a>
 
@@ -31,18 +32,12 @@
   <summary>Instructions</summary>
 
    - **Prerequisite**: Your system works. That's it. You don't have to reinstall your system!
-   - **Automatic**, but guided and transparent, installation for Arch(-based) Linux:
-   ```bash
-   bash <(curl -s "https://end-4.github.io/dots-hyprland-wiki/setup.sh")
-   ```
-
-   If you are using fish shell (non-posix-compliant shell) then:
-   ```bash
-   bash -c "$(curl -s https://end-4.github.io/dots-hyprland-wiki/setup.sh)"
-   ```
 
    - **Manual** installation, other distros and more:
-     - See the [Wiki](https://end-4.github.io/dots-hyprland-wiki/en/ii-qs/01setup/)
+   ```git clone https://github.com/mrcxlinux/dots-hyprland && cd dots-hyprland && bash install.sh```
+
+   See the [Wiki](https://end-4.github.io/dots-hyprland-wiki/en/ii-qs/01setup/) for more information
+     
     
    - **Default keybinds**: Should be somewhat familiar if you've used Windows or GNOME. 
      - For a list, hit `Super`+`/`
@@ -58,8 +53,6 @@
   | ------------- | ------------- |
   | [Hyprland](https://github.com/hyprwm/hyprland) | The compositor (for noobs, you can just call it a window manager) |
   | [Quickshell](https://quickshell.outfoxxed.me/) | A QtQuick-based widget system, responsible for the status bar, sidebars, etc. |
-
-
 
   - For a more comprehensive list of dependencies, see [scriptdata/dependencies.conf](https://github.com/end-4/dots-hyprland/blob/main/scriptdata/dependencies.conf)
 </details>
@@ -86,44 +79,14 @@ _latest and only style that I actively use. Other past styles are still there fo
 | Window management | Weeb power |
 | ![image](https://github.com/user-attachments/assets/86cc511b-0d33-4c78-bcc0-3037d02a17da) | ![image](https://github.com/user-attachments/assets/292259fc-57d3-4663-a583-2ce2faad13fb) |
 
-### illogical-impulse<sup>AGS</sup> <sub>(Deprecated)</sub>
 
-| AI | Common widgets |
-|:---|:---------------|
-| ![image](https://github.com/user-attachments/assets/9d7af13f-89ef-470d-ba78-d2288b79cf60) | ![image](https://github.com/end-4/dots-hyprland/assets/97237370/406b72b6-fa38-4f0d-a6c4-4d7d5d5ddcb7) |
-| Window management | Weeb power |
-| ![image](https://github.com/user-attachments/assets/02983b9b-79ba-4c25-8717-90bef2357ae5) | ![image](https://github.com/user-attachments/assets/bbb332ec-962a-4e88-a95b-486d0bd8ce76) |
-
-### Unsupported stuff
-
-- Source code not likely to work but still available in the [`archive`](https://github.com/end-4/dots-hyprland/tree/archive) branch. Extremely spaghetti.
-- Click image for a presentation video
-
-#### m3ww
-   <a href="https://streamable.com/85ch8x">
-    <img src="https://github.com/end-4/dots-hyprland/assets/97237370/09533e64-b6d7-47eb-a840-ee90c6776adf" alt="Material Eww!">
-   </a>
-
-#### NovelKnock
-   <a href="https://streamable.com/7vo61k">
-    <img src="https://github.com/end-4/dots-hyprland/assets/97237370/42903d03-bf6f-49d4-be7f-dd77e6cb389d" alt="Desktop Preview">
-   </a>
-
-#### Hybrid
-   <a href="https://streamable.com/4oogot">
-    <img src="https://github.com/end-4/dots-hyprland/assets/97237370/190deb1e-f6f5-46ce-8cf0-9b39944c079d" alt="click the circles!">
-   </a>
-
-#### Windoes
-   <a href="https://streamable.com/5qx614">
-    <img src="https://github.com/end-4/dots-hyprland/assets/97237370/b15317b1-f295-49f5-b90c-fb6328b8d886" alt="Desktop Preview">
-   </a>
 
 <div align="center">
     <h2>• thank you •</h2>
     <h3></h3>
 </div>
 
+ - [@end-4](https://github.com/end-4) for everything in this repo! cant express my gratitude towards you!
  - [@clsty](https://github.com/clsty) for making my work accessible by taking care of the install script and many other things
  - [@midn8hustlr](https://github.com/midn8hustlr) for greatly improving the color generation system
  - [@outfoxxed](https://github.com/outfoxxed/) for being extremely supportive in my Quickshell journey
