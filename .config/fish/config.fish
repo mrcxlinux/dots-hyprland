@@ -18,6 +18,7 @@ if test -f ~/.local/state/quickshell/user/generated/terminal/sequences.txt
 end
 
 alias "aftersetup" "mv ~/.config/hypr/hypridle.conf.new ~/.config/hypr/hypridle.conf && mv ~/.config/hypr/hyprlock.conf.new ~/.config/hypr/hyprlock.conf"
+alias "code" "code --disable-gpu"
 alias pamcan pacman
 alias pacman "sudo pacman"
 alias ls 'eza --icons'
