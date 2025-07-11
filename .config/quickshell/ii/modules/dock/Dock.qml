@@ -107,6 +107,17 @@ Scope { // Scope
                                 spacing: 3
                                 property real padding: 5
 
+                                DockButton {
+                                    Layout.fillHeight: true
+                                    onClicked: Hyprland.dispatch("global quickshell:overviewToggle")
+                                    contentItem: MaterialSymbol {
+                                        anchors.fill: parent
+                                        horizontalAlignment: Text.AlignHCenter
+                                        font.pixelSize: parent.width / 1.3
+                                        text: "apps"
+                                        color: Appearance.colors.colOnLayer0
+                                    }
+                                }
                                 VerticalButtonGroup {
                                     Layout.topMargin: Appearance.sizes.hyprlandGapsOut // why does this work
                                     GroupButton { // Pin button
@@ -124,21 +135,31 @@ Scope { // Scope
                                             color: root.pinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
                                         }
                                     }
+
+                                }
+                                Rectangle {
+                                    Layout.topMargin: Appearance.sizes.elevationMargin + dockRow.padding + Appearance.rounding.normal
+                                    Layout.bottomMargin: Appearance.sizes.hyprlandGapsOut + dockRow.padding + Appearance.rounding.normal
+                                    Layout.fillHeight: true
+                                    implicitWidth: 0
+                                    color: Appearance.colors.colOutlineVariant
+                                }
+                                Rectangle {
+                                    Layout.topMargin: Appearance.sizes.elevationMargin + dockRow.padding + Appearance.rounding.normal
+                                    Layout.bottomMargin: Appearance.sizes.hyprlandGapsOut + dockRow.padding + Appearance.rounding.normal
+                                    Layout.fillHeight: true
+                                    implicitWidth: 0
+                                    color: Appearance.colors.colOutlineVariant
+                                }
+                                Rectangle {
+                                    Layout.topMargin: Appearance.sizes.elevationMargin + dockRow.padding + Appearance.rounding.normal
+                                    Layout.bottomMargin: Appearance.sizes.hyprlandGapsOut + dockRow.padding + Appearance.rounding.normal
+                                    Layout.fillHeight: true
+                                    implicitWidth: 0
+                                    color: Appearance.colors.colOutlineVariant
                                 }
                                 DockSeparator {}
                                 DockApps { id: dockApps; }
-                                DockSeparator {}
-                                DockButton {
-                                    Layout.fillHeight: true
-                                    onClicked: Hyprland.dispatch("global quickshell:overviewToggle")
-                                    contentItem: MaterialSymbol {
-                                        anchors.fill: parent
-                                        horizontalAlignment: Text.AlignHCenter
-                                        font.pixelSize: parent.width / 2
-                                        text: "apps"
-                                        color: Appearance.colors.colOnLayer0
-                                    }
-                                }
                             }
                         }    
                     }
