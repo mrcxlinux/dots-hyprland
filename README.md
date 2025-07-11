@@ -5,11 +5,9 @@
 
 <div align="center"> 
 
-![](https://img.shields.io/github/last-commit/mrcxlinux/dots-hyprland?&style=for-the-badge&color=FFB1C8&logoColor=D9E0EE&labelColor=292324)
-![](https://img.shields.io/github/stars/mrcxlinux/dots-hyprland?style=for-the-badge&logo=andela&color=FFB686&logoColor=D9E0EE&labelColor=292324)
-[![](https://img.shields.io/github/repo-size/mrcxlinux/dots-hyprland?color=CAC992&label=SIZE&logo=googledrive&style=for-the-badge&logoColor=D9E0EE&labelColor=292324)](https://github.com/end-4/hyprland)
-![](https://img.shields.io/badge/issues-skill-green?style=for-the-badge&color=CCE8E9&logoColor=D9E0EE&labelColor=292324) 
-</a>
+![](https://img.shields.io/github/last-commit/mrcxlinux/dots-hyprland?&style=for-the-badge&color=8ad7eb&logo=git&logoColor=D9E0EE&labelColor=1E202B)
+![](https://img.shields.io/github/stars/mrcxlinux/dots-hyprland?style=for-the-badge&logo=andela&color=86dbd7&logoColor=D9E0EE&labelColor=1E202B)
+![](https://img.shields.io/github/repo-size/mrcxlinux/dots-hyprland?color=86dbce&label=SIZE&logo=protondrive&style=for-the-badge&logoColor=D9E0EE&labelColor=26230e)
 
 </div>
 
@@ -17,7 +15,6 @@
     <h2>• overview •</h2>
     <h3></h3>
 </div>
-
 
  <details> 
   <summary>Notable features</summary>
@@ -54,6 +51,12 @@
   | [Quickshell](https://quickshell.outfoxxed.me/) | A QtQuick-based widget system, responsible for the status bar, sidebars, etc. |
 
   - For a more comprehensive list of dependencies, see [scriptdata/dependencies.conf](https://github.com/end-4/dots-hyprland/blob/main/scriptdata/dependencies.conf)
+</details>
+
+<details>
+    <summary>Discord</summary>
+        <a href="https://discord.gg/GtdRBXgMwq"> Server link </a> | I hope this provides a friendlier environment for support without needing me to personally accept every friend request/DM. For real issues, prefer GitHub
+
 </details>
 
 
