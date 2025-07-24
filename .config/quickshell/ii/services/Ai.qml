@@ -1,13 +1,12 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 
-import "root:/modules/common/functions/string_utils.js" as StringUtils
-import "root:/modules/common/functions/object_utils.js" as ObjectUtils
-import "root:/modules/common"
-import Quickshell;
-import Quickshell.Io;
-import Qt.labs.platform
-import QtQuick;
+import qs.modules.common.functions as CF
+import qs.modules.common
+import qs
+import Quickshell
+import Quickshell.Io
+import QtQuick
 
 /**
  * Basic service to handle LLM chats. Supports Google's and OpenAI's API formats.
@@ -24,8 +23,20 @@ Singleton {
     property var messageByID: ({})
     readonly property var apiKeys: KeyringStorage.keyringData?.apiKeys ?? {}
     readonly property var apiKeysLoaded: KeyringStorage.loaded
+    readonly property bool currentModelHasApiKey: {
+        const model = models[currentModelId];
+        if (!model || !model.requires_key) return true;
+        if (!apiKeysLoaded) return false;
+        const key = apiKeys[model.key_id];
+        return (key?.length > 0);
+    }
     property var postResponseHook
     property real temperature: Persistent.states?.ai?.temperature ?? 0.5
+    property QtObject tokenCount: QtObject {
+        property int input: -1
+        property int output: -1
+        property int total: -1
+    }
 
     function idForMessage(message) {
         // Generate a unique ID using timestamp and random value
@@ -40,6 +51,66 @@ Singleton {
     property list<var> userPrompts: []
     property list<var> promptFiles: [...defaultPrompts, ...userPrompts]
     property list<var> savedChats: []
+
+    // Gemini: https://ai.google.dev/gemini-api/docs/function-calling
+    // OpenAI: https://platform.openai.com/docs/guides/function-calling
+    property var tools: {
+        "gemini": [{"functionDeclarations": [
+            {
+                "name": "switch_to_search_mode",
+                "description": "Search the web",
+            },
+            {
+                "name": "get_shell_config",
+                "description": "Get the desktop shell config file contents",
+            },
+            {
+                "name": "set_shell_config",
+                "description": "Set a field in the desktop graphical shell config file. Must only be used after `get_shell_config`.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "description": "The key to set, e.g. `bar.borderless`. MUST NOT BE GUESSED, use `get_shell_config` to see what keys are available before setting.",
+                        },
+                        "value": {
+                            "type": "string",
+                            "description": "The value to set, e.g. `true`"
+                        }
+                    },
+                    "required": ["key", "value"]
+                }
+            },
+        ]}],
+        "openai": [
+            {
+                "type": "function",
+                "name": "get_shell_config",
+                "description": "Get the current shell configuration.",
+            },
+            {
+                "type": "function",
+                "name": "set_shell_config",
+                "description": "Set a field in the desktop graphical shell config file. Must only be used after `get_shell_config`.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "key": {
+                            "type": "string",
+                            "description": "The key to set, e.g. `bar.borderless`. MUST NOT BE GUESSED, use `get_shell_config` to see what keys are available before setting.",
+                        },
+                        "value": {
+                            "type": "string",
+                            "description": "The value to set, e.g. `true`"
+                        }
+                    },
+                    "required": ["key", "value"],
+                    "additionalProperties": false
+                }
+            }
+        ]
+    }
 
     // Model properties:
     // - name: Name of the model
@@ -58,152 +129,115 @@ Singleton {
         "gemini-2.0-flash-search": {
             "name": "Gemini 2.0 Flash (Search)",
             "icon": "google-gemini-symbolic",
-            "description": qsTr("Online | Google's model\nGives up-to-date information with search."),
+            "description": Translation.tr("Online | Google's model\nGives up-to-date information with search."),
             "homepage": "https://aistudio.google.com",
             "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent",
             "model": "gemini-2.0-flash",
             "requires_key": true,
             "key_id": "gemini",
             "key_get_link": "https://aistudio.google.com/app/apikey",
-            "key_get_description": qsTr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
             "api_format": "gemini",
-            "tools": [
-                {
-                    "google_search": {}
-                },
-            ]
+            "tools": [{
+                "google_search": {}
+            }]
         },
         "gemini-2.0-flash-tools": {
             "name": "Gemini 2.0 Flash (Tools)",
             "icon": "google-gemini-symbolic",
-            "description": qsTr("Experimental | Online | Google's model\nCan do a little more but doesn't search quickly"),
+            "description": Translation.tr("Experimental | Online | Google's model\nCan do a little more but takes an extra turn to perform search"),
             "homepage": "https://aistudio.google.com",
             "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent",
             "model": "gemini-2.0-flash",
             "requires_key": true,
             "key_id": "gemini",
             "key_get_link": "https://aistudio.google.com/app/apikey",
-            "key_get_description": qsTr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
             "api_format": "gemini",
-            "tools": [
-                {
-                    "functionDeclarations": [
-                        {
-                            "name": "switch_to_search_mode",
-                            "description": "Search the web",
-                        },
-                        {
-                            "name": "get_shell_config",
-                            "description": "Get the desktop shell config file contents",
-                        },
-                        {
-                            "name": "set_shell_config",
-                            "description": "Set a field in the desktop graphical shell config file. Must only be used after `get_shell_config`.",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "The key to set, e.g. `bar.borderless`. MUST NOT BE GUESSED, use `get_shell_config` to see what keys are available before setting.",
-                                    },
-                                    "value": {
-                                        "type": "string",
-                                        "description": "The value to set, e.g. `true`"
-                                    }
-                                },
-                                "required": ["key", "value"]
-                            }
-                        },
-                    ]
-                }
-            ]
+            "tools": root.tools["gemini"],
         },
         "gemini-2.5-flash-search": {
             "name": "Gemini 2.5 Flash (Search)",
             "icon": "google-gemini-symbolic",
-            "description": qsTr("Online | Google's model\nGives up-to-date information with search."),
+            "description": Translation.tr("Online | Google's model\nGives up-to-date information with search."),
             "homepage": "https://aistudio.google.com",
-            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:streamGenerateContent",
-            "model": "gemini-2.5-flash-preview-05-20",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent",
+            "model": "gemini-2.5-flash",
             "requires_key": true,
             "key_id": "gemini",
             "key_get_link": "https://aistudio.google.com/app/apikey",
-            "key_get_description": qsTr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
             "api_format": "gemini",
-            "tools": [
-                {
-                    "google_search": ({})
-                },
-            ]
+            "tools": [{
+                "google_search": {}
+            }]
         },
         "gemini-2.5-flash-tools": {
             "name": "Gemini 2.5 Flash (Tools)",
             "icon": "google-gemini-symbolic",
-            "description": qsTr("Experimental | Online | Google's model\nCan do a little more but doesn't search quickly"),
+            "description": Translation.tr("Experimental | Online | Google's model\nCan do a little more but takes an extra turn to perform search"),
             "homepage": "https://aistudio.google.com",
-            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:streamGenerateContent",
-            "model": "gemini-2.5-flash-preview-05-20",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent",
+            "model": "gemini-2.5-flash",
             "requires_key": true,
             "key_id": "gemini",
             "key_get_link": "https://aistudio.google.com/app/apikey",
-            "key_get_description": qsTr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
             "api_format": "gemini",
-            "tools": [
-                {
-                    "functionDeclarations": [
-                        {
-                            "name": "switch_to_search_mode",
-                            "description": "Search the web",
-                        },
-                        {
-                            "name": "get_shell_config",
-                            "description": "Get the desktop shell config file contents",
-                        },
-                        {
-                            "name": "set_shell_config",
-                            "description": "Set a field in the desktop graphical shell config file. Must only be used after `get_shell_config`.",
-                            "parameters": {
-                                "type": "object",
-                                "properties": {
-                                    "key": {
-                                        "type": "string",
-                                        "description": "The key to set, e.g. `bar.borderless`. MUST NOT BE GUESSED, use `get_shell_config` to see what keys are available before setting.",
-                                    },
-                                    "value": {
-                                        "type": "string",
-                                        "description": "The value to set, e.g. `true`"
-                                    }
-                                },
-                                "required": ["key", "value"]
-                            }
-                        },
-                    ]
-                }
-            ]
+            "tools": root.tools["gemini"],
+        },
+        "gemini-2.5-flash-lite": {
+            "name": "Gemini 2.5 Flash-Lite",
+            "icon": "google-gemini-symbolic",
+            "description": Translation.tr("Experimental | Online | Google's model\nA Gemini 2.5 Flash model optimized for cost-efficiency and high throughput."),
+            "homepage": "https://aistudio.google.com",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:streamGenerateContent",
+            "model": "gemini-2.5-flash-lite",
+            "requires_key": true,
+            "key_id": "gemini",
+            "key_get_link": "https://aistudio.google.com/app/apikey",
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "api_format": "gemini",
+        },
+        "gemini-2.5-flash-lite-search": {
+            "name": "Gemini 2.5 Flash-Lite (Search)",
+            "icon": "google-gemini-symbolic",
+            "description": Translation.tr("Experimental | Online | Google's model\nA Gemini 2.5 Flash model optimized for cost-efficiency and high throughput."),
+            "homepage": "https://aistudio.google.com",
+            "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:streamGenerateContent",
+            "model": "gemini-2.5-flash-lite",
+            "requires_key": true,
+            "key_id": "gemini",
+            "key_get_link": "https://aistudio.google.com/app/apikey",
+            "key_get_description": Translation.tr("**Pricing**: free. Data used for training.\n\n**Instructions**: Log into Google account, allow AI Studio to create Google Cloud project or whatever it asks, go back and click Get API key"),
+            "api_format": "gemini",
+            "tools": [{
+                "google_search": {}
+            }]
         },
         "openrouter-llama4-maverick": {
             "name": "Llama 4 Maverick",
             "icon": "ollama-symbolic",
-            "description": StringUtils.format(qsTr("Online via {0} | {1}'s model"), "OpenRouter", "Meta"),
+            "description": Translation.tr("Online via %1 | %2's model").arg("OpenRouter").arg("Meta"),
             "homepage": "https://openrouter.ai/meta-llama/llama-4-maverick:free",
             "endpoint": "https://openrouter.ai/api/v1/chat/completions",
             "model": "meta-llama/llama-4-maverick:free",
             "requires_key": true,
             "key_id": "openrouter",
             "key_get_link": "https://openrouter.ai/settings/keys",
-            "key_get_description": qsTr("**Pricing**: free. Data use policy varies depending on your OpenRouter account settings.\n\n**Instructions**: Log into OpenRouter account, go to Keys on the topright menu, click Create API Key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data use policy varies depending on your OpenRouter account settings.\n\n**Instructions**: Log into OpenRouter account, go to Keys on the topright menu, click Create API Key"),
         },
         "openrouter-deepseek-r1": {
             "name": "DeepSeek R1",
             "icon": "deepseek-symbolic",
-            "description": StringUtils.format(qsTr("Online via {0} | {1}'s model"), "OpenRouter", "DeepSeek"),
+            "description": Translation.tr("Online via %1 | %2's model").arg("OpenRouter").arg("DeepSeek"),
             "homepage": "https://openrouter.ai/deepseek/deepseek-r1:free",
             "endpoint": "https://openrouter.ai/api/v1/chat/completions",
             "model": "deepseek/deepseek-r1:free",
             "requires_key": true,
             "key_id": "openrouter",
             "key_get_link": "https://openrouter.ai/settings/keys",
-            "key_get_description": qsTr("**Pricing**: free. Data use policy varies depending on your OpenRouter account settings.\n\n**Instructions**: Log into OpenRouter account, go to Keys on the topright menu, click Create API Key"),
+            "key_get_description": Translation.tr("**Pricing**: free. Data use policy varies depending on your OpenRouter account settings.\n\n**Instructions**: Log into OpenRouter account, go to Keys on the topright menu, click Create API Key"),
         },
     }
     property var modelList: Object.keys(root.models)
@@ -249,7 +283,7 @@ Singleton {
                         root.models[safeModelName] = {
                             "name": guessModelName(model),
                             "icon": guessModelLogo(model),
-                            "description": StringUtils.format(qsTr("Local Ollama model | {0}"), model),
+                            "description": Translation.tr("Local Ollama model | %1").arg(model),
                             "homepage": `https://ollama.com/library/${model}`,
                             "endpoint": "http://localhost:11434/v1/chat/completions",
                             "model": model,
@@ -313,12 +347,12 @@ Singleton {
         onLoadedChanged: {
             if (!promptLoader.loaded) return;
             Config.options.ai.systemPrompt = promptLoader.text();
-            root.addMessage(StringUtils.format("Loaded the following system prompt\n\n---\n\n{0}", Config.options.ai.systemPrompt), root.interfaceRole);
+            root.addMessage(Translation.tr("Loaded the following system prompt\n\n---\n\n%1").arg(Config.options.ai.systemPrompt), root.interfaceRole);
         }
     }
 
     function printPrompt() {
-        root.addMessage(StringUtils.format("The current system prompt is\n\n---\n\n{0}", Config.options.ai.systemPrompt), root.interfaceRole);
+        root.addMessage(Translation.tr("The current system prompt is\n\n---\n\n%1").arg(Config.options.ai.systemPrompt), root.interfaceRole);
     }
 
     function loadPrompt(filePath) {
@@ -351,8 +385,8 @@ Singleton {
 
     function addApiKeyAdvice(model) {
         root.addMessage(
-            StringUtils.format(qsTr('To set an API key, pass it with the command\n\nTo view the key, pass "get" with the command<br/>\n\n### For {0}:\n\n**Link**: {1}\n\n{2}'), 
-                model.name, model.key_get_link, model.key_get_description ?? qsTr("<i>No further instruction provided</i>")), 
+            Translation.tr('To set an API key, pass it with the command\n\nTo view the key, pass "get" with the command<br/>\n\n### For %1:\n\n**Link**: %2\n\n%3')
+                .arg(model.name).arg(model.key_get_link).arg(model.key_get_description ?? Translation.tr("<i>No further instruction provided</i>")), 
             Ai.interfaceRole
         );
     }
@@ -370,11 +404,14 @@ Singleton {
             if (model?.requires_key) KeyringStorage.fetchKeyringData();
             // See if policy prevents online models
             if (Config.options.policies.ai === 2 && !model.endpoint.includes("localhost")) {
-                root.addMessage(StringUtils.format(StringUtils.format("Online models disallowed\n\nControlled by `policies.ai` config option"), model.name), root.interfaceRole);
+                root.addMessage(
+                    Translation.tr("Online models disallowed\n\nControlled by `policies.ai` config option"),
+                    root.interfaceRole
+                );
                 return;
             }
             if (setPersistentState) Persistent.states.ai.model = modelId;
-            if (feedback) root.addMessage(StringUtils.format("Model set to {0}", model.name), root.interfaceRole);
+            if (feedback) root.addMessage(Translation.tr("Model set to %1").arg(model.name), root.interfaceRole);
             if (model.requires_key) {
                 // If key not there show advice
                 if (root.apiKeysLoaded && (!root.apiKeys[model.key_id] || root.apiKeys[model.key_id].length === 0)) {
@@ -382,7 +419,7 @@ Singleton {
                 }
             }
         } else {
-            if (feedback) root.addMessage(qsTr("Invalid model. Supported: \n```\n") + modelList.join("\n```\n```\n"), Ai.interfaceRole) + "\n```"
+            if (feedback) root.addMessage(Translation.tr("Invalid model. Supported: \n```\n") + modelList.join("\n```\n```\n"), Ai.interfaceRole) + "\n```"
         }
     }
     
@@ -392,18 +429,18 @@ Singleton {
 
     function setTemperature(value) {
         if (value == NaN || value < 0 || value > 2) {
-            root.addMessage(qsTr("Temperature must be between 0 and 2"), Ai.interfaceRole);
+            root.addMessage(Translation.tr("Temperature must be between 0 and 2"), Ai.interfaceRole);
             return;
         }
         Persistent.states.ai.temperature = value;
         root.temperature = value;
-        root.addMessage(StringUtils.format(qsTr("Temperature set to {0}"), value), Ai.interfaceRole);
+        root.addMessage(Translation.tr("Temperature set to %1").arg(value), Ai.interfaceRole);
     }
 
     function setApiKey(key) {
         const model = models[currentModelId];
         if (!model.requires_key) {
-            root.addMessage(StringUtils.format(qsTr("{0} does not require an API key"), model.name), Ai.interfaceRole);
+            root.addMessage(Translation.tr("%1 does not require an API key").arg(model.name), Ai.interfaceRole);
             return;
         }
         if (!key || key.length === 0) {
@@ -412,7 +449,7 @@ Singleton {
             return;
         }
         KeyringStorage.setNestedField(["apiKeys", model.key_id], key.trim());
-        root.addMessage(StringUtils.format(qsTr("API key set for {0}"), model.name, Ai.interfaceRole));
+        root.addMessage(Translation.tr("API key set for %1").arg(model.name), Ai.interfaceRole);
     }
 
     function printApiKey() {
@@ -420,17 +457,17 @@ Singleton {
         if (model.requires_key) {
             const key = root.apiKeys[model.key_id];
             if (key) {
-                root.addMessage(StringUtils.format(qsTr("API key:\n\n```txt\n{0}\n```"), key), Ai.interfaceRole);
+                root.addMessage(Translation.tr("API key:\n\n```txt\n%1\n```").arg(key), Ai.interfaceRole);
             } else {
-                root.addMessage(StringUtils.format(qsTr("No API key set for {0}"), model.name), Ai.interfaceRole);
+                root.addMessage(Translation.tr("No API key set for %1").arg(model.name), Ai.interfaceRole);
             }
         } else {
-            root.addMessage(StringUtils.format(qsTr("{0} does not require an API key"), model.name), Ai.interfaceRole);
+            root.addMessage(Translation.tr("%1 does not require an API key").arg(model.name), Ai.interfaceRole);
         }
     }
 
     function printTemperature() {
-        root.addMessage(StringUtils.format(qsTr("Temperature: {0}"), root.temperature), Ai.interfaceRole);
+        root.addMessage(Translation.tr("Temperature: %1").arg(root.temperature), Ai.interfaceRole);
     }
 
     function clearMessages() {
@@ -465,10 +502,14 @@ Singleton {
         }
 
         function buildGeminiRequestData(model, messages) {
+            const tools = [
+                ...(model.tools ?? root.tools[model.api_format]),
+            ]
+            // console.log("Tools", JSON.stringify(tools, null, 2));
             let baseData = {
                 "contents": messages.filter(message => (message.role != Ai.interfaceRole)).map(message => {
                     const geminiApiRoleName = (message.role === "assistant") ? "model" : message.role;
-                    const usingSearch = model.tools[0].google_search != undefined                
+                    const usingSearch = tools[0].google_search != undefined                
                     if (!usingSearch && message.functionCall != undefined && message.functionCall.length > 0) {
                         return {
                             "role": geminiApiRoleName,
@@ -497,14 +538,12 @@ Singleton {
                         }]
                     }
                 }),
-                "tools": [
-                    ...model.tools,
-                ],
+                "tools": tools,
                 "system_instruction": {
                     "parts": [{ text: root.systemPrompt }]
                 },
                 "generationConfig": {
-                    // "temperature": root.temperature,
+                    "temperature": root.temperature,
                 },
             };
             return model.extraParams ? Object.assign({}, baseData, model.extraParams) : baseData;
@@ -523,7 +562,7 @@ Singleton {
                     }),
                 ],
                 "stream": true,
-                // "temperature": root.temperature,
+                "temperature": root.temperature,
             };
             return model.extraParams ? Object.assign({}, baseData, model.extraParams) : baseData;
         }
@@ -571,7 +610,7 @@ Singleton {
             const requestCommandString = `curl --no-buffer "${endpoint}"`
                 + ` ${headerString}`
                 + ((apiFormat == "gemini") ? "" : ` -H "Authorization: Bearer \$\{${root.apiKeyEnvVarName}\}"`)
-                + ` -d '${StringUtils.shellSingleQuoteEscape(JSON.stringify(data))}'`
+                + ` -d '${CF.StringUtils.shellSingleQuoteEscape(JSON.stringify(data))}'`
             // console.log("Request command: ", requestCommandString);
             requester.command = baseCommand.concat([requestCommandString]);
 
@@ -601,6 +640,7 @@ Singleton {
                     root.handleGeminiFunctionCall(functionCall.name, functionCall.args);
                     return
                 }
+
                 // Normal text response
                 const responseContent = dataJson.candidates[0]?.content?.parts[0]?.text
                 requester.message.rawContent += responseContent;
@@ -611,7 +651,9 @@ Singleton {
                         "text": chunk?.web?.title,
                         "url": chunk?.web?.uri,
                     }
-                });
+                }) ?? [];
+
+                // Handle annotations and search queries
                 const annotations = dataJson.candidates[0]?.groundingMetadata?.groundingSupports?.map(citation => {
                     return {
                         "type": "url_citation",
@@ -624,9 +666,19 @@ Singleton {
                 });
                 requester.message.annotationSources = annotationSources;
                 requester.message.annotations = annotations;
+                requester.message.searchQueries = dataJson.candidates[0]?.groundingMetadata?.webSearchQueries ?? [];
+                // console.log("[AI] Gemini: Search queries: ", JSON.stringify(requester.message.searchQueries, null, 2));
+
+                // Usage
+                root.tokenCount.input = dataJson.usageMetadata?.promptTokenCount ?? -1;
+                root.tokenCount.output = dataJson.usageMetadata?.candidatesTokenCount ?? -1;
+                root.tokenCount.total = dataJson.usageMetadata?.totalTokenCount ?? -1;
+                // console.log("[AI] Gemini: Token count: ", root.tokenCount);
+
+                // Last logging
                 // console.log(JSON.stringify(requester.message, null, 2));
             } catch (e) {
-                console.log("[AI] Could not parse response from stream: ", e);
+                console.log("[AI] Gemini: Could not parse buffer: ", e);
                 requester.message.rawContent += requester.geminiBuffer;
                 requester.message.content += requester.geminiBuffer
             } finally {
@@ -686,6 +738,7 @@ Singleton {
             }
 
             requester.message.content += newContent;
+            requester.message.rawContent += newContent;
 
             if (dataJson.done) {
                 requester.markDone();
@@ -776,29 +829,35 @@ Singleton {
 
     function handleGeminiFunctionCall(name, args) {
         if (name === "switch_to_search_mode") {
-            if (root.currentModelId === "gemini-2.5-flash-tools") {
-                root.setModel("gemini-2.5-flash-search", false);
-                root.postResponseHook = () => root.setModel("gemini-2.5-flash-tools", false);
-            } else if (root.currentModelId === "gemini-2.0-flash-tools") {
-                root.setModel("gemini-2.0-flash-search", false);
-                root.postResponseHook = () => root.setModel("gemini-2.0-flash-tools", false);
+            const modelId = root.currentModelId;
+            if (modelId.endsWith("-tools")) {
+                const searchModelId = modelId.replace(/-tools$/, "-search");
+                if (root.modelList.indexOf(searchModelId) !== -1) {
+                    root.setModel(searchModelId, false);
+                    root.postResponseHook = () => root.setModel(modelId, false);
+                } else {
+                    root.addMessage(Translation.tr("No corresponding search model found for %1").arg(modelId), Ai.interfaceRole);
+                }
+            } else {
+                root.addMessage(Translation.tr("Cannot switch to search mode from %1").arg(root.currentModelId), Ai.interfaceRole);
+                return;
             }
-            addFunctionOutputMessage(name, qsTr("Switched to search mode. Continue with the user's request."))
+            addFunctionOutputMessage(name, Translation.tr("Switched to search mode. Continue with the user's request."))
             requester.makeRequest();
         } else if (name === "get_shell_config") {
-            const configJson = ObjectUtils.toPlainObject(Config.options)
+            const configJson = CF.ObjectUtils.toPlainObject(Config.options)
             addFunctionOutputMessage(name, JSON.stringify(configJson));
             requester.makeRequest();
         } else if (name === "set_shell_config") {
             if (!args.key || !args.value) {
-                addFunctionOutputMessage(name, qsTr("Invalid arguments. Must provide `key` and `value`."));
+                addFunctionOutputMessage(name, Translation.tr("Invalid arguments. Must provide `key` and `value`."));
                 return;
             }
             const key = args.key;
             const value = args.value;
             Config.setNestedValue(key, value);
         }
-        else root.addMessage(qsTr("Unknown function call: {0}"), "assistant");
+        else root.addMessage(Translation.tr("Unknown function call: %1").arg(name), "assistant");
     }
 
     function chatToJson() {
@@ -853,7 +912,7 @@ Singleton {
             root.messageIDs = saveData.map((_, i) => {
                 return i
             })
-            console.log(JSON.stringify(messageIDs))
+            // console.log(JSON.stringify(messageIDs))
             for (let i = 0; i < saveData.length; i++) {
                 const message = saveData[i];
                 root.messageByID[i] = root.aiMessageComponent.createObject(root, {

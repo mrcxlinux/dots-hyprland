@@ -1,6 +1,6 @@
 import QtQuick
 import Quickshell
-import "root:/modules/common/functions/color_utils.js" as ColorUtils
+import qs.modules.common.functions
 pragma Singleton
 pragma ComponentBehavior: Bound
 
@@ -140,8 +140,8 @@ Singleton {
         property color colSurfaceContainerHighest: ColorUtils.transparentize(m3colors.m3surfaceContainerHighest, root.contentTransparency)
         property color colSurfaceContainerHighestHover: ColorUtils.mix(m3colors.m3surfaceContainerHighest, m3colors.m3onSurface, 0.95)
         property color colSurfaceContainerHighestActive: ColorUtils.mix(m3colors.m3surfaceContainerHighest, m3colors.m3onSurface, 0.85)
-        property color colTooltip: m3colors.darkmode ? ColorUtils.mix(m3colors.m3background, "#3C4043", 0.5) : "#3C4043" // m3colors.m3inverseSurface in the specs, but the m3 website actually uses #3C4043
-        property color colOnTooltip: "#F8F9FA" // m3colors.m3inverseOnSurface in the specs, but the m3 website actually uses this color
+        property color colTooltip: m3colors.m3inverseSurface
+        property color colOnTooltip: m3colors.m3inverseOnSurface
         property color colScrim: ColorUtils.transparentize(m3colors.m3scrim, 0.5)
         property color colShadow: ColorUtils.transparentize(m3colors.m3shadow, 0.7)
         property color colOutlineVariant: m3colors.m3outlineVariant
@@ -168,6 +168,7 @@ Singleton {
             property string iconNerd: "SpaceMono NF"
             property string monospace: "JetBrains Mono NF"
             property string reading: "Readex Pro"
+            property string expressive: "Space Grotesk"
         }
         property QtObject pixelSize: QtObject {
             property int smallest: 10

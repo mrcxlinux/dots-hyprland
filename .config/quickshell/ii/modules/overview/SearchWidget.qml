@@ -1,8 +1,8 @@
-import "root:/"
-import "root:/services/"
-import "root:/modules/common"
-import "root:/modules/common/widgets"
-import "root:/modules/common/functions/string_utils.js" as StringUtils
+import qs
+import qs.services
+import qs.modules.common
+import qs.modules.common.widgets
+import qs.modules.common.functions
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
@@ -58,7 +58,7 @@ Item { // Wrapper
         {
             action: "konachanwall",
             execute: () => {
-                Quickshell.execDetached([Quickshell.configPath("scripts/colors/random_konachan_wall.sh")]);
+                Quickshell.execDetached([Quickshell.shellPath("scripts/colors/random_konachan_wall.sh")]);
             }
         },
         {
@@ -206,7 +206,7 @@ Item { // Wrapper
                     color: activeFocus ? Appearance.m3colors.m3onSurface : Appearance.m3colors.m3onSurfaceVariant
                     selectedTextColor: Appearance.m3colors.m3onSecondaryContainer
                     selectionColor: Appearance.colors.colSecondaryContainer
-                    placeholderText: qsTr("Search, calculate or run")
+                    placeholderText: Translation.tr("Search, calculate or run")
                     placeholderTextColor: Appearance.m3colors.m3outline
                     implicitWidth: root.searchingText == "" ? Appearance.sizes.searchWidthCollapsed : Appearance.sizes.searchWidth
 
@@ -294,8 +294,17 @@ Item { // Wrapper
                                     clickActionName: "",
                                     type: `#${entry.match(/^\s*(\S+)/)?.[1] || ""}`,
                                     execute: () => {
-                                        Quickshell.execDetached(["bash", "-c", `echo '${StringUtils.shellSingleQuoteEscape(entry)}' | cliphist decode | wl-copy`]);
-                                    }
+                                        Cliphist.copy(entry)
+                                    },
+                                    actions: [
+                                        {
+                                            name: "Delete",
+                                            icon: "delete",
+                                            execute: () => {
+                                                Cliphist.deleteEntry(entry);
+                                            }
+                                        }
+                                    ]
                                 };
                             }).filter(Boolean);
                         }
@@ -320,8 +329,8 @@ Item { // Wrapper
                         nonAppResultsTimer.restart();
                         const mathResultObject = {
                             name: root.mathResult,
-                            clickActionName: qsTr("Copy"),
-                            type: qsTr("Math result"),
+                            clickActionName: Translation.tr("Copy"),
+                            type: Translation.tr("Math result"),
                             fontType: "monospace",
                             materialSymbol: 'calculate',
                             execute: () => {
@@ -330,8 +339,8 @@ Item { // Wrapper
                         };
                         const commandResultObject = {
                             name: searchingText.replace("file://", ""),
-                            clickActionName: qsTr("Run"),
-                            type: qsTr("Run command"),
+                            clickActionName: Translation.tr("Run"),
+                            type: Translation.tr("Run command"),
                             fontType: "monospace",
                             materialSymbol: 'terminal',
                             execute: () => {
@@ -344,8 +353,8 @@ Item { // Wrapper
                             if (actionString.startsWith(root.searchingText) || root.searchingText.startsWith(actionString)) {
                                 return {
                                     name: root.searchingText.startsWith(actionString) ? root.searchingText : actionString,
-                                    clickActionName: qsTr("Run"),
-                                    type: qsTr("Action"),
+                                    clickActionName: Translation.tr("Run"),
+                                    type: Translation.tr("Action"),
                                     materialSymbol: 'settings_suggest',
                                     execute: () => {
                                         action.execute(root.searchingText.split(" ").slice(1).join(" "));
@@ -359,8 +368,8 @@ Item { // Wrapper
 
                         //////////////// Apps //////////////////
                         result = result.concat(AppSearch.fuzzyQuery(root.searchingText).map(entry => {
-                            entry.clickActionName = qsTr("Launch");
-                            entry.type = qsTr("App");
+                            entry.clickActionName = Translation.tr("Launch");
+                            entry.type = Translation.tr("App");
                             return entry;
                         }));
 
@@ -380,8 +389,8 @@ Item { // Wrapper
                         ///////////////// Web search ////////////////
                         result.push({
                             name: root.searchingText,
-                            clickActionName: qsTr("Search"),
-                            type: qsTr("Search the web"),
+                            clickActionName: Translation.tr("Search"),
+                            type: Translation.tr("Search the web"),
                             materialSymbol: 'travel_explore',
                             execute: () => {
                                 let url = Config.options.search.engineBaseUrl + root.searchingText;
@@ -395,6 +404,8 @@ Item { // Wrapper
                         return result;
                     }
                 }
+
+                onModelChanged: root.focusFirstItemIfNeeded()
 
                 delegate: SearchItem {
                     // The selectable item for each search result

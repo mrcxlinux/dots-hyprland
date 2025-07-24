@@ -25,7 +25,7 @@
   - **Transparent installation**: Every command is shown before it's run
 </details>
 <details> 
-  <summary>Instructions</summary>
+  <summary>Installation instructions</summary>
 
    - **Prerequisite**: Your system works. That's it. You don't have to reinstall your system!
 
@@ -65,6 +65,16 @@
     <h3></h3>
 </div>
 
+<table style="border-collapse: collapse;">
+  <tr>
+    <td width="25%">
+      <img src=".github/assets/illogical-impulse.svg" alt="illogical-impulse logo" style="float:left; width:100%;">
+    </td>
+    <td width="75%">
+      <i>latest and only style that I actively use. Other past styles are still there for your viewing pleasure and not actual use, but code is still available, see below.</i>
+    </td>
+  </tr>
+</table>
 
 
 <img src=".github/assets/illogical-impulse.svg" alt="illogical-impulse logo"><sup>  Quickshell</sup>
@@ -95,6 +105,8 @@ _latest and only style that I actively use._
  - AGS: [Aylur's config](https://github.com/Aylur/dotfiles/tree/ags-pre-ts), [kotontrion's config](https://github.com/kotontrion/dotfiles)
  - EWW: [fufexan's config](https://github.com/fufexan/dotfiles) (he thanks more people there btw)
  - AI bots for providing useful examples
+
+ <sup><sup><sup><sup><sup>[@tokyobot](https://github.com/tokyob0t) for saying hi</sup></sup></sup></sup></sup>
 
 <div align="center">
     <h2>• stonks •</h2>
